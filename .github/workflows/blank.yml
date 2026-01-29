@@ -48,27 +48,49 @@ jobs:
               } else if (pr.state === 'open') {
                 statusIcon = '💙';
               } else {
-
                 try {
-                  const recentCommits = await github.rest.repos.listCommits({
-                    owner: owner,
-                    repo: repoName,
-                    // author: 'thelightway24', // <-- [삭제] Maintainer가 커밋했을 수 있으므로 내 아이디 필터 제거
-                    per_page: 50 // [수정] 대형 프로젝트는 커밋이 많으므로 범위를 50개로 확장
-                  });
+                  let found = false;
                   
+                  const committerQuery = `repo:${fullRepoName} committer:thelightway24`;
+                  const committerResult = await github.rest.search.commits({
+                    q: committerQuery,
+                    sort: 'committer-date',
+                    order: 'desc',
+                    per_page: 100 
+                  });
 
-                  const isSquashed = recentCommits.data.some(commit => 
-                    commit.commit.message.includes(`#${pr.number}`) ||   // 일반적인 GitHub 패턴 (#123)
-                    commit.commit.message.includes(`gh-${pr.number}`) || // Spring 프로젝트 패턴 (gh-123)
-                    commit.commit.message.includes(pr.title)             // 제목 포함 여부
-                  );
-
-                  if (isSquashed) {
-                    statusIcon = '💜';
+                  for (const item of committerResult.data.items) {
+                    const msg = item.commit.message;
+                    if (msg.includes(`#${pr.number}`) || msg.includes(pr.title)) {
+                      found = true;
+                      break; 
+                    }
                   }
+
+                  if (!found) {
+                    const authorQuery = `repo:${fullRepoName} author:thelightway24`;
+                    const authorResult = await github.rest.search.commits({
+                      q: authorQuery,
+                      sort: 'committer-date',
+                      order: 'desc',
+                      per_page: 100
+                    });
+
+                    for (const item of authorResult.data.items) {
+                      const msg = item.commit.message;
+                      if (msg.includes(`#${pr.number}`) || msg.includes(pr.title)) {
+                        found = true;
+                        break;
+                      }
+                    }
+                  }
+
+                  if (found) {
+                     statusIcon = '💜';
+                  }
+
                 } catch (e) {
-                  console.log(`Failed to check commits for ${fullRepoName}: ${e.message}`);
+                  console.log(`Search failed for ${fullRepoName}: ${e.message}`);
                 }
               }
               
@@ -94,9 +116,9 @@ jobs:
             const fs = require('fs');
             const readmePath = 'README.md';
             const readme = fs.readFileSync(readmePath, 'utf8');
+            
             const startTag = '<!-- CONTRIBUTIONS:START -->';
             const endTag = '<!-- CONTRIBUTIONS:END -->';
-            
             
             const newReadme = readme.replace(
               new RegExp(`${startTag}[\\s\\S]*${endTag}`),
