@@ -48,46 +48,39 @@ jobs:
               } else if (pr.state === 'open') {
                 statusIcon = '💙';
               } else {
-                // [탐정 로직 개선: 서버 사이드 정밀 검색]
                 try {
                   let found = false;
                   
-                  // 전략: "커밋 메시지에 PR 번호가 있고" AND "작성자가 나인 경우"를 서버에 직접 질의
-                  // 이렇게 하면 최근 100개 제한에 걸리지 않고, 전체 역사에서 검색합니다.
-                  
-                  // 1. Committer가 'thelightway24' 이면서 내용에 'PR번호'가 있는가?
-                  // 쿼리 예시: repo:spring-projects/spring-batch committer:thelightway24 "4944"
-                  const committerQuery = `repo:${fullRepoName} committer:thelightway24 "${pr.number}"`;
-                  const committerResult = await github.rest.search.commits({
-                    q: committerQuery,
-                    per_page: 1 // 존재 여부만 알면 됨
-                  });
-
-                  if (committerResult.data.total_count > 0) {
-                    found = true;
-                  } else {
-                    // 2. Author가 'thelightway24' 이면서 내용에 'PR번호'가 있는가?
-                    // 쿼리 예시: repo:spring-projects/spring-batch author:thelightway24 "4944"
-                    const authorQuery = `repo:${fullRepoName} author:thelightway24 "${pr.number}"`;
-                    const authorResult = await github.rest.search.commits({
-                      q: authorQuery,
-                      per_page: 1
-                    });
+                  const checkCommit = async (target) => {
+                    if (!target) return false;
                     
-                    if (authorResult.data.total_count > 0) {
-                      found = true;
-                    } else {
-                      // [보너스] 혹시 번호 말고 "제목"으로 검색해야 나올 수도 있음 (번호 누락 시)
-                      // Author가 나이면서 "제목의 핵심 단어"가 포함된 경우
-                      // (단, 제목이 너무 길면 검색이 잘 안되니 앞부분만 잘라서 검색도 가능하지만, 일단 전체 제목 시도)
-                      const titleQuery = `repo:${fullRepoName} author:thelightway24 "${pr.title.replace(/"/g, '')}"`;
-                       try {
-                        const titleResult = await github.rest.search.commits({
-                          q: titleQuery,
-                          per_page: 1
-                        });
-                        if (titleResult.data.total_count > 0) found = true;
-                      } catch(e) { /* 제목 검색 실패는 무시 */ }
+                    const cQuery = `repo:${fullRepoName} committer:thelightway24 "${target}"`;
+                    const cResult = await github.rest.search.commits({ q: cQuery, per_page: 1 });
+                    if (cResult.data.total_count > 0) return true;
+                    
+                    const aQuery = `repo:${fullRepoName} author:thelightway24 "${target}"`;
+                    const aResult = await github.rest.search.commits({ q: aQuery, per_page: 1 });
+                    if (aResult.data.total_count > 0) return true;
+                    
+                    return false;
+                  };
+
+                  found = await checkCommit(pr.number);
+
+                  if (!found && pr.body) {
+                    const issueRegex = /(?:fix|fixes|close|closes|resolve|resolves|related|ref|issue).{0,10}#(\d+)/gi;
+                    let match;
+                    const linkedIssues = [];
+                    
+                    while ((match = issueRegex.exec(pr.body)) !== null) {
+                      linkedIssues.push(match[1]);
+                    }
+                    
+                    for (const issueNum of linkedIssues) {
+                      if (await checkCommit(issueNum)) {
+                        found = true;
+                        break; 
+                      }
                     }
                   }
 
