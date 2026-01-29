@@ -7,10 +7,8 @@ on:
 jobs:
   update-readme:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
       
@@ -19,33 +17,73 @@ jobs:
         with:
           github-token: ${{ secrets.METRICS_TOKEN }}
           script: |
-            const query = `is:pr is:merged author:thelightway24 -user:thelightway24 is:public sort:created-desc`;
+            const blacklistPatterns = [
+              /^talkpick.*/i,
+              /^test.*/i
+            ];
+
+            const query = `is:pr author:thelightway24 -user:thelightway24 is:public sort:created-desc`;
             const result = await github.rest.search.issuesAndPullRequests({
               q: query,
               per_page: 100
             });
 
             const repos = {};
-            result.data.items.forEach(pr => {
+            
+            for (const pr of result.data.items) {
               const repoUrl = pr.repository_url;
-              const repoName = repoUrl.replace('https://api.github.com/repos/', '');
+              const fullRepoName = repoUrl.replace('https://api.github.com/repos/', '');
+              const [owner, repoName] = fullRepoName.split('/');
               
-              if (!repos[repoName]) {
-                repos[repoName] = [];
+              if (blacklistPatterns.some(pattern => pattern.test(repoName))) continue;
+
+              if (!repos[fullRepoName]) {
+                repos[fullRepoName] = [];
               }
-              repos[repoName].push({
+              
+              let statusIcon = '🔘';
+              
+              if (pr.pull_request.merged_at) {
+                statusIcon = '💜'; 
+              } else if (pr.state === 'open') {
+                statusIcon = '💙';
+              } else {
+                try {
+                  const recentCommits = await github.rest.repos.listCommits({
+                    owner: owner,
+                    repo: repoName,
+                    author: 'thelightway24',
+                    per_page: 10
+                  });
+                  
+                  const isSquashed = recentCommits.data.some(commit => 
+                    commit.commit.message.includes(`#${pr.number}`) || 
+                    commit.commit.message.includes(pr.title)
+                  );
+
+                  if (isSquashed) {
+                    statusIcon = '💜';
+                  }
+                } catch (e) {
+                  console.log(`Failed to check commits for ${fullRepoName}: ${e.message}`);
+                }
+              }
+              
+              repos[fullRepoName].push({
                 title: pr.title,
                 url: pr.html_url,
-                date: pr.closed_at.split('T')[0]
+                date: pr.created_at.split('T')[0],
+                status: statusIcon
               });
-            });
+            }
 
             let content = `### 🚀 Open Source Contributions\n\n`;
+            content += `> 💜 Merged (incl. Squashed) | 💙 Open | 🔘 Closed\n\n`;
             
             for (const [repo, prs] of Object.entries(repos)) {
               content += `#### 📦 [${repo}](https://github.com/${repo})\n`;
               prs.forEach(pr => {
-                content += `- [${pr.title}](${pr.url}) (${pr.date})\n`;
+                content += `- ${pr.status} [${pr.title}](${pr.url}) (${pr.date})\n`;
               });
               content += `\n`;
             }
@@ -53,15 +91,13 @@ jobs:
             const fs = require('fs');
             const readmePath = 'README.md';
             const readme = fs.readFileSync(readmePath, 'utf8');
-            
-            const startTag = '';
-            const endTag = '';
+            const startTag = '<!-- CONTRIBUTIONS:START -->';
+            const endTag = '<!-- CONTRIBUTIONS:END -->';
             
             const newReadme = readme.replace(
               new RegExp(`${startTag}[\\s\\S]*${endTag}`),
               `${startTag}\n${content}\n${endTag}`
             );
-            
             fs.writeFileSync(readmePath, newReadme);
 
       - name: Commit & Push
