@@ -19,8 +19,8 @@ jobs:
           script: |
             const blacklistPatterns = [
               /^talkpick.*/i,
-              /^yakplus.*/i
-              /^WooBooung.*/i
+              /^yakplus.*/i,
+              /^WooBooung.*/i,
               /^DIDIM.*/i
             ];
 
