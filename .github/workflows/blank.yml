@@ -1,25 +1,73 @@
-name: Repository Stats
+name: Update Contributions
 on:
-  schedule: [{cron: "0 0 * * *"}]
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 jobs:
-  github-metrics:
+  update-readme:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: lowlighter/metrics@latest
+      - uses: actions/checkout@v4
+      
+      - name: Generate Contribution List
+        uses: actions/github-script@v7
         with:
-          token: ${{ secrets.METRICS_TOKEN }}
-          user: thelightway24
-          template: terminal
-          config_timezone: Asia/Seoul
-          base: ""
-          plugin_activity: yes
-          plugin_activity_limit: 15
-          plugin_activity_days: 0
-          plugin_activity_filter: pr, issue
-          plugin_notable: yes
-          plugin_notable_from: all
-          plugin_notable_types: commit, pull_request
+          github-token: ${{ secrets.METRICS_TOKEN }}
+          script: |
+            const query = `is:pr is:merged author:thelightway24 -user:thelightway24 is:public sort:created-desc`;
+            const result = await github.rest.search.issuesAndPullRequests({
+              q: query,
+              per_page: 100
+            });
+
+            const repos = {};
+            result.data.items.forEach(pr => {
+              const repoUrl = pr.repository_url;
+              const repoName = repoUrl.replace('https://api.github.com/repos/', '');
+              
+              if (!repos[repoName]) {
+                repos[repoName] = [];
+              }
+              repos[repoName].push({
+                title: pr.title,
+                url: pr.html_url,
+                date: pr.closed_at.split('T')[0]
+              });
+            });
+
+            let content = `### 🚀 Open Source Contributions\n\n`;
+            
+            for (const [repo, prs] of Object.entries(repos)) {
+              content += `#### 📦 [${repo}](https://github.com/${repo})\n`;
+              prs.forEach(pr => {
+                content += `- [${pr.title}](${pr.url}) (${pr.date})\n`;
+              });
+              content += `\n`;
+            }
+
+            const fs = require('fs');
+            const readmePath = 'README.md';
+            const readme = fs.readFileSync(readmePath, 'utf8');
+            
+            const startTag = '';
+            const endTag = '';
+            
+            const newReadme = readme.replace(
+              new RegExp(`${startTag}[\\s\\S]*${endTag}`),
+              `${startTag}\n${content}\n${endTag}`
+            );
+            
+            fs.writeFileSync(readmePath, newReadme);
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Update contribution list"
+          git push
