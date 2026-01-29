@@ -1,9 +1,4 @@
-twr
 
-
-
-
-<!-- CONTRIBUTIONS:START -->
 ### 🚀 Open Source Contributions
 
 > 💜 Merged (incl. Squashed) | 💙 Open | 🔘 Closed
@@ -76,4 +71,3 @@ twr
 - 💜 [Feature/#62 코드 통합](https://github.com/yakplus/backend/pull/64) (2025-05-05)
 
 
-<!-- CONTRIBUTIONS:END -->
