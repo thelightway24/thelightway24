@@ -13,7 +13,7 @@
 - 🔘 [docs: added contributing.md (draft)](https://github.com/dev-five-git/braillify/pull/84) (2025-10-13)
 - 💜 [Update GitHub funding username to dev-five-git](https://github.com/dev-five-git/braillify/pull/69) (2025-09-28)
 - 💜 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/68) (2025-09-28)
-- 💜 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/64) (2025-09-28)
+- 🔘 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/64) (2025-09-28)
 - 💜 [Fix: test-rule-57](https://github.com/dev-five-git/braillify/pull/56) (2025-09-21)
 
 #### 📦 [yakplus/frontend](https://github.com/yakplus/frontend)
@@ -34,7 +34,7 @@
 - 💜 [docs: fix typo in `src/content/learn/responding-to-events.md`](https://github.com/reactjs/ko.react.dev/pull/1250) (2025-08-06)
 
 #### 📦 [spring-projects/spring-batch](https://github.com/spring-projects/spring-batch)
-- 🔘 [GH4876: Add recover method to JobOperator](https://github.com/spring-projects/spring-batch/pull/4944) (2025-08-10)
+- 💜 [GH4876: Add recover method to JobOperator](https://github.com/spring-projects/spring-batch/pull/4944) (2025-08-10)
 
 #### 📦 [DIDIM-ai/backend](https://github.com/DIDIM-ai/backend)
 - 💙 [Deploy: v1.0.0 배포](https://github.com/DIDIM-ai/backend/pull/71) (2025-08-01)
