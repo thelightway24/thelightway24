@@ -19,7 +19,9 @@ jobs:
           script: |
             const blacklistPatterns = [
               /^talkpick.*/i,
-              /^test.*/i
+              /^yakplus.*/i
+              /^WooBooung.*/i
+              /^DIDIM.*/i
             ];
 
             const query = `is:pr author:thelightway24 -user:thelightway24 is:public sort:created-desc`;
