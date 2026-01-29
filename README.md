@@ -9,7 +9,7 @@ twr
 > 💜 Merged (incl. Squashed) | 💙 Open | 🔘 Closed
 
 #### 📦 [spring-projects/spring-framework](https://github.com/spring-projects/spring-framework)
-- 💜 [Fix deprecated Groovy syntax in spring-aspects](https://github.com/spring-projects/spring-framework/pull/36132) (2026-01-12)
+- 🔘 [Fix deprecated Groovy syntax in spring-aspects](https://github.com/spring-projects/spring-framework/pull/36132) (2026-01-12)
 
 #### 📦 [dev-five-git/braillify](https://github.com/dev-five-git/braillify)
 - 💙 [feat: JVM 바인딩](https://github.com/dev-five-git/braillify/pull/133) (2026-01-11)
@@ -18,7 +18,7 @@ twr
 - 🔘 [docs: added contributing.md (draft)](https://github.com/dev-five-git/braillify/pull/84) (2025-10-13)
 - 💜 [Update GitHub funding username to dev-five-git](https://github.com/dev-five-git/braillify/pull/69) (2025-09-28)
 - 💜 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/68) (2025-09-28)
-- 💜 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/64) (2025-09-28)
+- 🔘 [fix: test-rule-55](https://github.com/dev-five-git/braillify/pull/64) (2025-09-28)
 - 💜 [Fix: test-rule-57](https://github.com/dev-five-git/braillify/pull/56) (2025-09-21)
 
 #### 📦 [yakplus/frontend](https://github.com/yakplus/frontend)
