@@ -48,7 +48,7 @@ jobs:
               } else if (pr.state === 'open') {
                 statusIcon = '💙';
               } else {
-                // [탐정 로직 강화됨]
+
                 try {
                   const recentCommits = await github.rest.repos.listCommits({
                     owner: owner,
@@ -57,7 +57,7 @@ jobs:
                     per_page: 50 // [수정] 대형 프로젝트는 커밋이 많으므로 범위를 50개로 확장
                   });
                   
-                  // 커밋 메시지 분석
+
                   const isSquashed = recentCommits.data.some(commit => 
                     commit.commit.message.includes(`#${pr.number}`) ||   // 일반적인 GitHub 패턴 (#123)
                     commit.commit.message.includes(`gh-${pr.number}`) || // Spring 프로젝트 패턴 (gh-123)
